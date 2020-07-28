@@ -1,4 +1,12 @@
 use std::fmt;
+use structopt::StructOpt;
+
+// struct for Cli argument(s)
+#[derive(StructOpt)]
+struct Cli {
+    #[structopt(parse(from_os_str))]
+    path: std::path::PathBuf,
+}
 
 // Token types
 // 
@@ -135,9 +143,15 @@ impl Interpreter {
     }
 }
 
-fn main() {
-    let mut interpreter = Interpreter::new("4+2".into());
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let args = Cli::from_args();
+
+    let content = std::fs::read_to_string(&args.path)?;
+
+    let mut interpreter = Interpreter::new(content.into());
     let result = interpreter.expr();
 
     println!("{}", result);
+
+    Ok(())
 }
