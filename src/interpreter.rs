@@ -31,7 +31,7 @@ impl Interpreter {
             return Some(Token {token_type: EOF})
         }
 
-        // Get a character at the position self.position and decide what token to create based on the single character.
+        // Get a character at the position self.position and decide what token to crconsumee based on the single character.
         let current_char = self.text.as_bytes()[self.position] as char;
         match current_char {
             char if char.is_digit(10) => {
@@ -64,15 +64,19 @@ impl Interpreter {
         }
     }
 
-    fn eat(&mut self, token: Token) {
+    fn get_current_token(&self) -> Token {
+        return self.clone().current_token.unwrap();
+    }
+
+    fn consume(&mut self, token: Token) {
         // Compare the current token type with the passed token type
-        // and if the match then "eat" the current token and
+        // and if the match then "consume" the current token and
         // assign the next token to the self.current_token
-        let current_token = self.clone().current_token.unwrap();
+        let current_token = self.get_current_token();
         if current_token.token_type == token.token_type {
             self.current_token = self.get_next_token();
         } else {
-            panic!("Token error: eat!")
+            panic!("Token error: consume!")
         }
     }
 
@@ -86,27 +90,27 @@ impl Interpreter {
         let mut operator = "unknown";
 
         // We expect the current token to be a single-digit integer
-        let token = self.clone().current_token.unwrap();
+        let mut token = self.get_current_token();
         if let Integer(value) = token.token_type {
             left = value;
-            self.eat(token);
+            self.consume(token);
         }
 
         // We expect the current token to be a '+' token
-        let token  = self.clone().current_token.unwrap();
+        token  = self.get_current_token();
         if token.token_type == Plus {
             operator = "plus";
-            self.eat(token);
+            self.consume(token);
         } else if token.token_type == Minus {
             operator = "minus";
-            self.eat(token);
+            self.consume(token);
         }
 
         // We expect the current token to be a single-digit integer
-        let token = self.clone().current_token.unwrap();
+        let token = self.get_current_token();
         if let Integer(value) = token.token_type {
             right = value;
-            self.eat(token);
+            self.consume(token);
         }
 
         // After the above call the self.current_token is set to EOF token
@@ -114,7 +118,7 @@ impl Interpreter {
         // At this point INTEGER PLUS INTEGER sequence of tokens has been successfully found and the method
         // can just return the result of adding two integers, thus effectively interpreting client input
 
-        match operator.as_ref() {
+        match operator {
             "plus" => left + right,
             "minus" => left - right,
             _ => panic!("Unknown operator!")
