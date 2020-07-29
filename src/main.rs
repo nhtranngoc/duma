@@ -16,6 +16,7 @@ struct Cli {
 enum  TokenType {
     Integer(i32),
     Plus,
+    Minus,
     EOF
 }
 
@@ -26,6 +27,7 @@ impl fmt::Display for TokenType {
         let output = match self {
             Integer(value) => format!("Integer, {}", value),
             Plus => "Plus".into(),
+            Minus => "Minus".into(),
             EOF => "EOF".into()
         };
         write!(f, "{}", output)
@@ -83,10 +85,22 @@ impl Interpreter {
                 })
             }
 
-            char if char == '+' => {
+            ' ' => {
+                self.position += 1;
+                return self.get_next_token();
+            }
+
+            '+' => {
                 self.position += 1;
                 Some(Token {
                     token_type: Plus
+                })
+            }
+
+            '-' => {
+                self.position += 1;
+                Some(Token {
+                    token_type: Minus,
                 })
             }
 
@@ -113,6 +127,7 @@ impl Interpreter {
 
         let mut left = 0;
         let mut right = 0;
+        let mut operator = "unknown";
 
         // We expect the current token to be a single-digit integer
         let token = self.clone().current_token.unwrap();
@@ -124,6 +139,10 @@ impl Interpreter {
         // We expect the current token to be a '+' token
         let token  = self.clone().current_token.unwrap();
         if token.token_type == Plus {
+            operator = "plus";
+            self.eat(token);
+        } else if token.token_type == Minus {
+            operator = "minus";
             self.eat(token);
         }
 
@@ -139,7 +158,11 @@ impl Interpreter {
         // At this point INTEGER PLUS INTEGER sequence of tokens has been successfully found and the method
         // can just return the result of adding two integers, thus effectively interpreting client input
 
-        left + right
+        match operator.as_ref() {
+            "plus" => left + right,
+            "minus" => left - right,
+            _ => panic!("Unknown operator!")
+        }
     }
 }
 
