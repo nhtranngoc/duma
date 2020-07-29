@@ -9,6 +9,8 @@ pub enum TokenType {
     Integer(i32),
     Plus,
     Minus,
+    Multiply,
+    Divide,
     EOF
 }
 
@@ -18,6 +20,8 @@ impl fmt::Display for TokenType {
             TokenType::Integer(value) => format!("Integer, {}", value),
             TokenType::Plus => "Plus".into(),
             TokenType::Minus => "Minus".into(),
+            TokenType::Multiply => "Multiply".into(),
+            TokenType::Divide => "Divide".into(),
             TokenType::EOF => "EOF".into()
         };
         write!(f, "{}", output)

@@ -71,6 +71,20 @@ impl Interpreter {
                 })
             }
 
+            '*' => {
+                self.position += 1;
+                Some(Token {
+                    token_type: Multiply
+                })
+            }
+
+            '/' => {
+                self.position += 1;
+                Some(Token {
+                    token_type: Divide
+                })
+            }
+
             _ => panic!(format!("Invalid token found: {}", current_char))
         }
     }
@@ -79,7 +93,7 @@ impl Interpreter {
         return self.clone().current_token.unwrap();
     }
 
-    fn consume(&mut self, token: Token) {
+    fn consume(&mut self, token: &Token) {
         // Compare the current token type with the passed token type
         // and if the match then "consume" the current token and
         // assign the next token to the self.current_token
@@ -98,30 +112,24 @@ impl Interpreter {
 
         let mut left = 0;
         let mut right = 0;
-        let mut operator = "unknown";
 
         // We expect the current token to be a single-digit integer
         let mut token = self.get_current_token();
         if let Integer(value) = token.token_type {
             left = value;
-            self.consume(token);
+            self.consume(&token);
         }
 
         // We expect the current token to be a '+' token
         token  = self.get_current_token();
-        if token.token_type == Plus {
-            operator = "plus";
-            self.consume(token);
-        } else if token.token_type == Minus {
-            operator = "minus";
-            self.consume(token);
-        }
+        let operator = token.clone().token_type;
+        self.consume(&token);
 
         // We expect the current token to be a single-digit integer
         let token = self.get_current_token();
         if let Integer(value) = token.token_type {
             right = value;
-            self.consume(token);
+            self.consume(&token);
         }
 
         // After the above call the self.current_token is set to EOF token
@@ -130,8 +138,10 @@ impl Interpreter {
         // can just return the result of adding two integers, thus effectively interpreting client input
 
         match operator {
-            "plus" => left + right,
-            "minus" => left - right,
+            Plus => left + right,
+            Minus => left - right,
+            Multiply => left * right,
+            Divide => left / right,
             _ => panic!("Unknown operator!")
         }
     }
