@@ -100,6 +100,7 @@ class Interpreter(object):
             self.error()
     
     def expr(self):
+        result = 0
         # expr -> INTEGER PLUS INTEGER
         # set current token to the first token taken from the input 
         self.current_token = self.get_next_token()
@@ -107,34 +108,37 @@ class Interpreter(object):
         # we expect the current token to be a single-digit integer
         left = self.current_token
         self.eat(INTEGER)
+        
+        while self.current_char is not None:
+            # we expect the current token to be a '+' token
+            op = self.current_token
+            if op.type == PLUS:
+                self.eat(PLUS)
+            elif op.type == MINUS:
+                self.eat(MINUS)
+            elif op.type == MULTIPLY:
+                self.eat(MULTIPLY)
+            else:
+                self.eat(DIVIDE)
 
-        # we expect the current token to be a '+' token
-        op = self.current_token
-        if op.type == PLUS:
-            self.eat(PLUS)
-        elif op.type == MINUS:
-            self.eat(MINUS)
-        elif op.type == MULTIPLY:
-            self.eat(MULTIPLY)
-        else:
-            self.eat(DIVIDE)
+            # we expect the current token to be a single-digit integer
+            right = self.current_token
+            self.eat(INTEGER)
+            # after the above call the self.current_token is set to EOF token
 
-        # we expect the current token to be a single-digit integer
-        right = self.current_token
-        self.eat(INTEGER)
-        # after the above call the self.current_token is set to EOF token
+            # at this point either the INTEGER PLUS INTEGER or the INTEGER MINUS INTEGER sequence of tokens has been successfully
+            # found and the method can just return the result of adding two integers,
+            # thus effectively interpreting client input
+            if op.type == PLUS:
+                result = left.value + right.value
+            elif op.type == MINUS:
+                result = left.value - right.value
+            elif op.type == MULTIPLY:
+                result = left.value * right.value
+            else:
+                result = left.value / right.value
 
-        # at this point either the INTEGER PLUS INTEGER or the INTEGER MINUS INTEGER sequence of tokens has been successfully
-        # found and the method can just return the result of adding two integers,
-        # thus effectively interpreting client input
-        if op.type == PLUS:
-            result = left.value + right.value
-        elif op.type == MINUS:
-            result = left.value - right.value
-        elif op.type == MULTIPLY:
-            result = left.value * right.value
-        else:
-            result = left.value / right.value
+            left = Token(INTEGER, result)
         
         return result
 
