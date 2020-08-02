@@ -9,10 +9,16 @@ class BinOp(AST):
         self.right = right
         self.token = self.op = op
 
+class UnaryOp(AST):
+    def __init__(self, op, expr):
+        self.token = self.op = op
+        self.expr = expr
+
 class Num(AST):
     def __init__(self, token):
         self.token = token
         self.value = token.value
+
 
 class Parser(object):
     def __init__(self, lexer):
@@ -43,6 +49,14 @@ class Parser(object):
             self.eat(LPAREN)
             node = self.expr()
             self.eat(RPAREN)
+            return node
+        elif token.type == PLUS:
+            self.eat(PLUS)
+            node = UnaryOp(token, self.factor())
+            return node
+        elif token.type == MINUS:
+            self.eat(MINUS)
+            node = UnaryOp(token, self.factor())
             return node
     
     def term(self):
