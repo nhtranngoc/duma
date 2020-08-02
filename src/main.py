@@ -1,7 +1,8 @@
 # Token types
 #
 # EOF (end-of-file) token is used to indicate that there is no more input left for lexical analysis
-INTEGER, PLUS, MINUS, MULTIPLY, DIVIDE, EOF = 'INTEGER', 'PLUS', 'MINUS', 'MULTIPLY', 'DIVIDE', 'EOF'
+INTEGER, PLUS, MINUS, MUL, DIV, LPAREN, RPAREN, EOF = (
+    'INTEGER', 'PLUS', 'MINUS', 'MUL', 'DIV', '(', ')', 'EOF')
 
 class Token(object):
     def __init__(self, type, value):
@@ -78,11 +79,19 @@ class Lexer(object):
 
             if self.current_char == '*':
                 self.advance()
-                return Token(MULTIPLY, '*')
+                return Token(MUL, '*')
 
             if self.current_char == '/':
                 self.advance()
-                return Token(DIVIDE, '/')
+                return Token(DIV, '/')
+
+            if self.current_char == '(':
+                self.advance()
+                return Token(LPAREN, '(')
+
+            if self.current_char == ')':
+                self.advance()
+                return Token(RPAREN, ')')
                           
             self.error()
 
@@ -108,20 +117,26 @@ class Interpreter(object):
 
     def factor(self): 
         token = self.current_token
-        self.eat(INTEGER)
-        return token.value
+        if token.type == INTEGER:
+            self.eat(INTEGER)
+            return token.value
+        elif token.type == LPAREN:
+            self.eat(LPAREN)
+            result = self.expr()
+            self.eat(RPAREN)
+            return result
     
     def term(self):
         # term -> factor((MUL | DIV) factor)*
         result = self.factor()
 
-        while self.current_token.type in (MULTIPLY, DIVIDE):
+        while self.current_token.type in (MUL, DIV):
             token = self.current_token
-            if token.type == MULTIPLY:
-                self.eat(MULTIPLY)
+            if token.type == MUL:
+                self.eat(MUL)
                 result = result * self.factor()
-            elif token.type == DIVIDE:
-                self.eat(DIVIDE)
+            elif token.type == DIV:
+                self.eat(DIV)
                 result = result / self.factor()
 
         return result
